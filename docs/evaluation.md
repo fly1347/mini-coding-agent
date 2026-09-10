@@ -69,4 +69,4 @@
 
 没有比较不同模型，没有验证 Skill/MCP 是否提升质量或效率，也没有证明任何 Context Management 策略优于 Full History。重复运行、固定任务集和更强的独立验收需要另行设计。
 
-Mini Coding Agent 自身另有 **47 项离线回归测试**，覆盖工作区边界、真实沙箱与 MCP、计划/验证门禁、预算与长度截断、Provider 与报告。它们使用可控模型回复，不冒充真实 LLM 运行，可按 [使用指南](usage.md) 复验。
+Mini Coding Agent 自身另有 **46 项离线回归测试**，覆盖工作区边界、真实沙箱与 MCP、计划/验证门禁、预算与长度截断、Provider 与报告。它们使用可控模型回复，不冒充真实 LLM 运行，可按 [使用指南](usage.md) 复验。

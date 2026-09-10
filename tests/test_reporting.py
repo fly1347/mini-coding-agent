@@ -73,45 +73,6 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(cell("a|b\n<script>`"), "a&#124;b &lt;script&gt;&#96;")
         self.assertEqual(cell("abcdef", 3), "abc…")
 
-    def test_historical_render_preserves_sources_and_refuses_overwrite(self):
-        from scripts.render_report import render
-        """合成旧格式记录，验证离线补全、有效验证引用与原文件保护。"""
-        command = "python3 -m unittest discover -s . -v"
-        # 仅用于格式回归的合成事件，不代表真实模型实验。
-        events = [
-            {"event": "start", "task": "合成旧格式报告测试", "model": "fixture-model",
-             "verify_command": command},
-            {"event": "model_request"},
-            {"event": "model_response", "usage": {"prompt_tokens": 100, "completion_tokens": 23}},
-            {"event": "tool_start", "tool_id": "tool-0001", "name": "run_shell",
-             "arguments": json.dumps({"command": command})},
-            {"event": "tool_result", "time": "2026-01-01T00:00:00Z", "tool_id": "tool-0001",
-             "name": "run_shell", "result": {"ok": True, "exit_code": 0,
-             "verification_accepted": True, "output": "Ran 1 test — OK"}},
-            {"event": "tool_result", "time": "2026-01-01T00:00:01Z", "tool_id": "tool-0002",
-             "name": "finish", "result": {"ok": True, "delivered": True, "summary": "合成交付说明"}},
-        ]
-        summary = {"status": "completed", "steps": 1, "tokens": 123, "tool_calls": 2,
-                   "changed_files": [], "run_dir": "/fixture/workspace/.mini-agent/runs/legacy",
-                   "verification": {"tool_id": "tool-0001", "command": command}}
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "trace.jsonl").write_text("\n".join(json.dumps(e) for e in events))
-            (root / "summary.json").write_text(json.dumps(summary))
-            (root / "FINAL.md").write_text("合成旧交付说明")
-            (root / "PLAN.md").write_text("合成旧计划")
-            before = {p.name: p.read_bytes() for p in root.iterdir()}
-            destination = render(root)
-            report = destination.read_text()
-            self.assertIn("离线补生成", report)
-            self.assertIn("| 总量 total | 123 | 1 / 1 |", report)
-            self.assertIn("合成交付说明", report)
-            self.assertIn("有效证据：tool-0001", report)
-            self.assertEqual(before, {name: (root / name).read_bytes() for name in before})
-            with self.assertRaises(FileExistsError):
-                render(root)
-            self.assertEqual(destination.read_text(), report)
-
     def test_run_summary_timing_and_outer_report_survive_rerun(self):
         from unittest.mock import patch
         with tempfile.TemporaryDirectory() as tmp:

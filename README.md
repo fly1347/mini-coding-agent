@@ -58,7 +58,7 @@ python3 -m unittest discover -s tests -v
 
 ```text
 mini_coding_agent/   Agent Loop、模型接口、工具、隔离、预算与报告
-scripts/            演示、样例交付验收、报告补生成
+scripts/            演示与样例交付验收
 examples/           测试修复用的最小 slugify 项目
 skills/             可选 test-repair Skill
 tests/              离线回归测试

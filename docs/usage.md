@@ -92,12 +92,6 @@ Demo 提供常用预算和扩展开关；各入口完整参数见 `--help`。旧
 
 同一工作区会保留各次运行日志，但业务代码继续变化，不自动形成每轮源码快照。报告中的预估费用使用代码内注明日期的价格快照，不代表实际账单。私有推理正文不持久化。
 
-旧日志缺少报告时，可以离线补生成；已有报告会被拒绝覆盖：
-
-```bash
-python3 scripts/render_report.py /path/to/workspace/.mini-agent/runs/run-id
-```
-
 ## 验证与样例验收
 
 项目自身测试不调用真实模型，但会实际执行文件操作、Bubblewrap 和 MCP 进程：
@@ -115,3 +109,26 @@ python3 scripts/check_delivery.py runs/你的扩展目录 --cli
 ```
 
 这是 slugify 样例专用验收器，不是任意项目的通用评审器。repair 模式还检查原始测试方法未被改弱；对自己的任务仍需检查需求覆盖与测试质量。
+
+## 测试、样例与脚本各自做什么
+
+`tests/` 验证 Agent 本身；`examples/` 是交给 Agent 修复的输入项目；`scripts/` 提供体验和验收入口。
+
+| 文件 | 用途 |
+|---|---|
+| `tests/test_agent.py` | 开发循环、计划门禁、空测试拒绝、修改后验证失效及异常退出 |
+| `tests/test_budget.py` | 输入估算与分账、缺失用量、超额停止、长度截断恢复 |
+| `tests/test_workspace.py` | 文件读写、路径越界、配置隔离、链接与特殊文件拒绝 |
+| `tests/test_sandbox.py` | 实际隔离、命令限制、超时和输出量限制 |
+| `tests/test_provider.py` | HTTP 请求与工具响应、Thinking 设置、凭据和错误处理 |
+| `tests/test_reporting.py` | 用量统计、退出报告、参数传递、目录命名及多轮报告保留 |
+| `tests/test_extensions.py` | Skill 按需加载、MCP 真实进程握手与调用、默认关闭行为 |
+| `tests/test_pricing.py` | 价格快照的计算规则、跨时段计价、缺失值处理 |
+| `tests/helpers.py` / `tests/__init__.py` | 可控模型回复和测试包标记，使回归稳定且不产生 API 用量 |
+| `examples/slugify/` | README 定义任务，源码故意带缺陷，三项基线测试供修复前后比较 |
+| `scripts/demo.py` | 准备独立工作区，体验从零创建或已有项目修复，以及 Skill/MCP |
+| `scripts/check_delivery.py` | 对 slugify 交付另加独立断言；repair 模式还检查原测试未被修改 |
+
+当前共 46 项离线测试。保留两份用途不同的测试：Agent 自身回归验证运行机制，样例测试为 Agent 提供真实失败反馈。Demo 与 Agent 测试都使用修复样例，因此它不是可随意删除的展示附件。
+
+每次运行自动生成报告；发布版不提供旧日志补报告脚本。运行后新建的 `runs/` 仍由 Git 忽略。
