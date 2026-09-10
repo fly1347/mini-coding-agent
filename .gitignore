@@ -1,0 +1,21 @@
+# 本地运行现场与 Python 缓存
+runs/
+.mini-agent/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 配置、数据库与系统文件
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite
+*.sqlite3
+*.log
+.DS_Store
+*:Zone.Identifier
+
+# 本地整理底稿，不属于发布内容
+.local/
