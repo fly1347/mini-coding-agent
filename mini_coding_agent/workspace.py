@@ -19,21 +19,22 @@ PRIVATE = {".git", ".mini-agent", ".venv", "venv", "RUN_REPORT.md"}
 IGNORED = {"__pycache__", ".pytest_cache"}
 
 
+# 判断路径名是否属于凭据、运行证据或其他保留区域。
 def private(name: str) -> bool:
-    """判断路径名是否属于凭据、运行证据或其他保留区域。"""
     return name in PRIVATE or name == ".env" or name.startswith(".env.")
 
 
 class Workspace:
     """集中维护一个 workspace 的文件边界与文本操作。"""
+    # 解析工作区根目录，并在执行程序前检查目录及受保护路径。
     def __init__(self, root: Path):
         self.root = root.resolve(strict=True)
         if not self.root.is_dir() or self.root == Path("/"):
             raise ValueError("workspace must be a project directory, not /")
         self.protected_paths()  # 在启动可写子进程前，先拒绝链接等路径别名。
 
+    # 把相对路径转换为经过越界、链接和文件类型检查的路径。
     def path(self, relative: str) -> Path:
-        """把相对路径转换为经过越界、链接和文件类型检查的路径。"""
         p = Path(relative)
         if p.is_absolute() or ".." in p.parts or any(private(x) for x in p.parts):
             raise ValueError("path must stay inside workspace; private paths are reserved")
@@ -51,8 +52,8 @@ class Workspace:
             raise ValueError("path escapes workspace")
         return target
 
+    # 收集需要在沙箱中遮蔽的路径，并提前拒绝不支持的文件。
     def protected_paths(self) -> list[Path]:
-        """收集需要在沙箱中遮蔽的路径，并提前拒绝不支持的文件。"""
         protected = []
         count = 0
         for base, dirs, files in os.walk(self.root, followlinks=False):
@@ -73,8 +74,8 @@ class Workspace:
                     raise ValueError("workspace contains a hard link")
         return protected
 
+    # 列出受大小范围约束的源文件，跳过私有内容和缓存。
     def files(self) -> list[str]:
-        """列出受大小范围约束的源文件，跳过私有内容和缓存。"""
         result = []
         for base, dirs, files in os.walk(self.root, followlinks=False):
             dirs[:] = sorted(d for d in dirs if not private(d) and d not in IGNORED
@@ -89,15 +90,15 @@ class Workspace:
                     raise ValueError("workspace exceeds 1000 source files")
         return result
 
+    # 读取大小受限的 UTF-8 常规文件。
     def read(self, path: str) -> str:
-        """读取大小受限的 UTF-8 常规文件。"""
         p = self.path(path)
         if not p.is_file() or p.stat().st_size > MAX_FILE:
             raise ValueError("expected a regular UTF-8 file of at most 256 KiB")
         return p.read_text(encoding="utf-8")
 
+    # 创建或覆盖 workspace 内的文本文件，并返回写入信息。
     def write(self, path: str, content: str) -> dict:
-        """创建或覆盖 workspace 内的文本文件，并返回写入信息。"""
         p = self.path(path)
         if len(content.encode()) > MAX_FILE:
             raise ValueError("file exceeds 256 KiB")
@@ -105,15 +106,15 @@ class Workspace:
         p.write_text(content, encoding="utf-8")
         return {"path": path, "bytes": len(content.encode())}
 
+    # 仅在旧文本唯一匹配时替换，避免误改多个位置。
     def replace(self, path: str, old: str, new: str) -> dict:
-        """仅在旧文本唯一匹配时替换，避免误改多个位置。"""
         content = self.read(path)
         if not old or content.count(old) != 1:
             raise ValueError("old text must match exactly once; read the file and retry")
         return self.write(path, content.replace(old, new, 1))
 
+    # 返回字面文本的前 50 个匹配位置。
     def search(self, query: str) -> list[dict]:
-        """返回字面文本的前 50 个匹配位置。"""
         if not query:
             raise ValueError("query cannot be empty")
         hits = []
@@ -129,8 +130,8 @@ class Workspace:
                         return hits
         return hits
 
+    # 计算源文件内容指纹，用于判断修改和验证证据是否过期。
     def snapshot(self) -> dict[str, str]:
-        """计算源文件内容指纹，用于判断修改和验证证据是否过期。"""
         result = {}
         for path in self.files():
             p = self.path(path)

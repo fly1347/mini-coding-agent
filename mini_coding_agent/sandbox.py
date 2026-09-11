@@ -25,8 +25,8 @@ import time
 from .workspace import Workspace
 
 
+# 解析受控 Python 命令，拒绝不支持的程序、参数和 shell 语法。
 def parse_command(command: str) -> list[str]:
-    """解析受控 Python 命令，拒绝不支持的程序、参数和 shell 语法。"""
     argv = shlex.split(command)
     if not argv or argv[0] != "python3" or len(argv) < 2:
         raise ValueError("allowed: python3 <relative-script.py> [args] or python3 -m unittest ...")
@@ -43,8 +43,8 @@ def parse_command(command: str) -> list[str]:
     return argv
 
 
+# 构造隔离挂载与干净环境，可为 MCP 使用只读 workspace。
 def sandbox_argv(ws: Workspace, argv: list[str], *, readonly=False, server: Path | None = None) -> list[str]:
-    """构造隔离挂载与干净环境，可为 MCP 使用只读 workspace。"""
     bwrap = shutil.which("bwrap")
     if not bwrap:
         raise RuntimeError("Bubblewrap is required (Linux/WSL2); no unsandboxed fallback")
@@ -69,8 +69,8 @@ def sandbox_argv(ws: Workspace, argv: list[str], *, readonly=False, server: Path
     return args
 
 
+# 在子进程执行前设置 CPU、内存、文件和句柄上限。
 def _limits():
-    """在子进程执行前设置 CPU、内存、文件和句柄上限。"""
     resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
     resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024,) * 2)
     resource.setrlimit(resource.RLIMIT_FSIZE, (8 * 1024 * 1024,) * 2)
@@ -78,8 +78,8 @@ def _limits():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
 
 
+# 运行隔离命令，收集有界输出，并在超时或中断时终止进程。
 def run_command(ws: Workspace, command: str, timeout: float = 20) -> dict:
-    """运行隔离命令，收集有界输出，并在超时或中断时终止进程。"""
     argv = parse_command(command)
     if argv[1] != "-m":
         ws.path(argv[1])

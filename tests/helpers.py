@@ -10,8 +10,8 @@
 import json
 
 
+# 构造一条指定工具调用的模型回复。
 def call(tool_name, **arguments):
-    """构造一条指定工具调用的模型回复。"""
     return {"message": {"role": "assistant", "content": None, "tool_calls": [
         {"id": "call-test", "type": "function", "function": {
             "name": tool_name, "arguments": json.dumps(arguments)}}]}, "usage": {"prompt_tokens": 80, "completion_tokens": 20, "total_tokens": 100}}
@@ -31,8 +31,8 @@ class SequenceProvider:
         self.responses = iter(responses)
         self.seen = []
 
+    # 记录本次请求，并返回下一条预设回复或异常。
     def complete(self, messages, tools, max_tokens):
-        """记录本次请求，并返回下一条预设回复或异常。"""
         self.seen.append(json.loads(json.dumps(messages)))
         item = next(self.responses)
         if isinstance(item, BaseException):
@@ -40,8 +40,8 @@ class SequenceProvider:
         return item(messages) if callable(item) else item
 
 
+# 从上次工具结果中取得证据 ID，构造交付请求。
 def finish_last(messages):
-    """从上次工具结果中取得证据 ID，构造交付请求。"""
     result = json.loads(messages[-1]["content"])
     return call("finish", summary="Implemented normalization; real regression command passed.",
                 verification_id=result["tool_id"])

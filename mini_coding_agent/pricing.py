@@ -1,6 +1,15 @@
-"""按有日期的 DeepSeek 官方人民币参考价估算费用，不代替实际账单。
+"""
+文件作用：
+把一次运行的真实 API 用量换算为人民币参考费用，供运行报告展示估算依据。
 
-逐模型请求按北京时间工作日高峰/空闲档计算；仅用真实返回的三类计费用量。
+整体结构：
+1）SOURCE / SNAPSHOT_DATE / PRICES：记录价格来源、快照日期及三类高峰单价；
+2）estimate_cost：按 step 对齐请求时间和响应用量，逐调用选择北京时间高峰或空闲档；
+3）结果：返回合计金额、档位和价格依据，数据不齐时返回 amount=None 及原因。
+
+计费口径：
+仅计缓存命中、未命中和输出三类用量；历史记录也按本价格快照补算，
+不查询实时价格，不使用预算预留，也不代替实际账单。
 """
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -16,8 +25,8 @@ PRICES = {
 }
 
 
+# 逐调用估算并记录参考价；缺少模型价格或计费用量时不造金额。
 def estimate_cost(summary, events):
-    """逐调用估算并记录参考价；缺少模型价格或计费用量时不造金额。"""
     from .reporting import usage_summary
     result = {"currency": "CNY", "amount": None, "pricing_date": SNAPSHOT_DATE, "source": SOURCE}
     rates = PRICES.get(summary.get("model"))
@@ -41,6 +50,7 @@ def estimate_cost(summary, events):
             local = moment.astimezone(ZoneInfo("Asia/Shanghai"))
         except (ValueError, KeyError):
             return {**result, "reason": "缺少有效的请求时间"}
+        # 逐请求选档，跨高峰边界的一次 Run 不能整体套用同一个折扣。
         peak = local.weekday() < 5 and (9 <= local.hour < 12 or 14 <= local.hour < 18)
         tiers.add("高峰" if peak else "空闲")
         total += sum(count * rate for count, rate in zip(counts, rates)) / 1_000_000 * (1 if peak else 0.5)

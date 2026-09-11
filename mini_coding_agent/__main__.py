@@ -15,8 +15,8 @@ from .provider import ChatProvider, load_config
 from .workspace import Workspace
 
 
+# 解析命令行并启动一次任务，将交付状态转换为退出码。
 def main():
-    """解析命令行并启动一次任务，将交付状态转换为退出码。"""
     parser = argparse.ArgumentParser(description="A minimal, auditable Coding Agent (Python + Bubblewrap)")
     parser.add_argument("workspace", type=Path)
     parser.add_argument("task", help="natural language development task")

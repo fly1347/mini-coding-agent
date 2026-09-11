@@ -40,8 +40,8 @@ CREATE_TASK = """从当前空 workspace 开始，创建一个纯标准库 Python
 默认无需 Skill 或 MCP；如启用它们，请按需加载并满足补充说明。"""
 
 
+# 创建新的演示 workspace，按扩展开关运行真实模型任务。
 def main():
-    """创建新的演示 workspace，按扩展开关运行真实模型任务。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--thinking", choices=("enabled", "disabled"), default="disabled",
                         help="思考模式：默认 disabled（非思考）；显式 enabled 开启思考")

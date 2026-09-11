@@ -19,8 +19,8 @@ TOOL = {"name": "project_notes", "description": "Read this workspace's PROJECT_N
         "annotations": {"readOnlyHint": True, "openWorldHint": False}}
 
 
+# 按初始化状态处理 stdio 请求，只开放项目说明读取。
 def serve():
-    """按初始化状态处理 stdio 请求，只开放项目说明读取。"""
     initialized = ready = False
     for line in sys.stdin:
         request_id = None

@@ -41,15 +41,15 @@ CLI_ACCEPTANCE = '''
 '''
 
 
+# 提取原测试类中的方法 AST，用于比较既有断言是否保留。
 def original_methods(source):
-    """提取原测试类中的方法 AST，用于比较既有断言是否保留。"""
     tree = ast.parse(source)
     return {method.name: ast.dump(method) for node in tree.body if isinstance(node, ast.ClassDef)
             and node.name == "SlugifyTests" for method in node.body if isinstance(method, ast.FunctionDef)}
 
 
+# 在临时沙箱副本中执行独立验收，并返回执行状态。
 def main():
-    """在临时沙箱副本中执行独立验收，并返回执行状态。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("workspace", type=Path)
     parser.add_argument("--cli", action="store_true")

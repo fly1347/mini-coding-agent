@@ -18,8 +18,8 @@ from .sandbox import sandbox_argv
 from .workspace import Workspace
 
 
+# 调用固定的 MCP 项目说明工具，并记录完整协议往返。
 def read_notes(ws: Workspace, event) -> dict:
-    """调用固定的 MCP 项目说明工具，并记录完整协议往返。"""
     server = Path(__file__).with_name("mcp_server.py").resolve()
     command = sandbox_argv(ws, ["python3", "-I", "/mcp_server.py"], readonly=True, server=server)
     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -28,8 +28,8 @@ def read_notes(ws: Workspace, event) -> dict:
     selector.register(process.stdout, selectors.EVENT_READ)
     request_id = 0
 
+    # 发送一条 JSON-RPC 消息，必要时限时等待对应响应。
     def send(method, params=None, notification=False):
-        """发送一条 JSON-RPC 消息，必要时限时等待对应响应。"""
         nonlocal request_id
         request_id += 1
         request = {"jsonrpc": "2.0", "method": method}

@@ -1,6 +1,17 @@
-"""生成中文运行报告：从公开 trace 汇总真实 usage、工具时间线和验证链路。
+"""
+文件作用：
+从一次运行的 summary 和公开 trace 生成中文 RUN_REPORT.md，
+让读者先看交付状态与用量，再按工具证据复盘修改、失败和最终验证。
 
-usage 保留缺失值与覆盖次数；报告只摘录操作和执行证据，不复制源码或私有推理。
+整体结构：
+1）FIELDS / usage_summary：统一 API 用量字段别名，累计有效值并记录各字段覆盖次数；
+2）cell：把事件文本转为转义、限长的单行 Markdown 表格内容；
+3）write_report：整理运行摘要、真实用量、费用、改动、工具时间线和验证链路，写入报告；
+4）write_report.count：为用量数字区分未提供、部分返回和完整返回。
+
+展示边界：
+用量缺失不当零，预算扣账不当真实 usage；费用由 pricing.py 按日期快照估算。
+报告摘录操作和执行证据，不复制源码或私有推理，也不把时间先后当成修复因果。
 """
 from __future__ import annotations
 
@@ -23,8 +34,8 @@ FIELDS = {
 }
 
 
+# 仅累计 provider 返回的非负整数，并标注每个字段覆盖的响应次数。
 def usage_summary(events):
-    """仅累计 provider 返回的非负整数，并标注每个字段覆盖的响应次数。"""
     responses = [e for e in events if e["event"] == "model_response"]
     totals = dict.fromkeys(FIELDS)
     coverage = dict.fromkeys(FIELDS, 0)
@@ -40,20 +51,20 @@ def usage_summary(events):
                 if type(value) is int and value >= 0:
                     totals[field] = (totals[field] or 0) + value
                     coverage[field] += 1
-                    break
+                    break  # 同一响应的别名只认一个，避免缓存等字段重复累计。
     return {**totals, "reported_calls": coverage, "model_responses": len(responses)}
 
 
+# 把任意文本变成有长度限制的单行 Markdown 表格内容。
 def cell(value, limit=240):
-    """把任意文本变成有长度限制的单行 Markdown 表格内容。"""
     text = " ".join(str(value).split())
     if len(text) > limit:
         text = text[:limit] + "…"
     return html.escape(text).replace("|", "&#124;").replace("`", "&#96;")
 
 
+# 将汇总与事件组织为 run_dir/RUN_REPORT.md，按结论、用量和验证证据引导阅读。
 def write_report(run_dir, summary, events, delivery):
-    """按结论、用量、改动、时间线、反馈链和最终验收排列证据。"""
     usage = summary["usage"]
     cost = summary.get("cost_estimate") or estimate_cost(summary, events)
     cost_text = f"**¥{cost['amount']:.6f}**" if cost["amount"] is not None else "暂无法估算（" + cost["reason"] + "）"
@@ -62,6 +73,7 @@ def write_report(run_dir, summary, events, delivery):
     duration = summary.get("duration_seconds")
     estimated = False
     if duration is None:
+        # 旧记录没有单调时钟耗时，只能用事件时间戳补算，并在报告中标出精度差异。
         ended = next((e.get("time") for e in reversed(events) if e["event"] == "end"), None)
         if began and ended:
             duration = (datetime.fromisoformat(ended.replace("Z", "+00:00")) -
@@ -77,8 +89,8 @@ def write_report(run_dir, summary, events, delivery):
     elif reasoning == 0:
         thinking_text += "（已返回的 reasoning tokens 为 0）"
 
+    # 展示累计数字，同时保留缺失与部分返回的含义。
     def count(field):
-        """展示累计数字，同时保留缺失与部分返回的含义。"""
         value = usage[field]
         if value is None:
             return "未提供"

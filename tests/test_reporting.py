@@ -1,4 +1,17 @@
-"""验证报告的真实用量口径、缺失覆盖、退出状态以及不复制源码的阅读边界。"""
+"""
+文件作用：
+验证公开版运行报告如实呈现用量和交付状态，并保留每次运行的独立报告。
+
+整体结构：
+1）用量用例：检查字段别名、部分覆盖、非法值和预算预留不混入实际 usage；
+2）展示与退出用例：检查未完成状态、缺失标记和 Markdown 单元格转义；
+3）多轮用例：工作区首读报告更新后，旧报告仍保留且不进入源码指纹；
+4）入口用例：模拟时钟和 Agent，检查 Demo 目录命名、目标冲突及 CLI/Demo 参数传递。
+
+验证手段：
+使用可控 Provider、临时目录和局部 mock，不请求真实模型。
+公开版不包含历史报告补生成脚本及其证据测试；这里只检查当前运行器的报告和入口行为。
+"""
 import json
 from pathlib import Path
 import tempfile
@@ -11,6 +24,7 @@ from tests.helpers import SequenceProvider, call
 
 
 class ReportingTests(unittest.TestCase):
+    # 混合两种用量字段和缺失响应，区分实际零值、部分覆盖以及不能推导的缺项。
     def test_mixed_provider_usage_and_partial_coverage(self):
         events = [{"event": "model_response", "usage": usage} for usage in [
             {"prompt_tokens": 100, "prompt_cache_hit_tokens": 80, "prompt_cache_miss_tokens": 20,
@@ -29,6 +43,7 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(result["reported_calls"]["prompt_tokens"], 2)
         self.assertEqual(result["model_responses"], 3)
 
+    # 检查非法用量保持缺失，同一字段的多个别名不重复计数。
     def test_missing_invalid_and_duplicate_aliases(self):
         result = usage_summary([{"event": "model_response", "usage": {
             "total_tokens": True, "prompt_tokens": -1, "completion_tokens": "2",
@@ -41,6 +56,7 @@ class ReportingTests(unittest.TestCase):
         self.assertEqual(result["cache_hit_tokens"], 5)
         self.assertIsNone(usage_summary([])["total_tokens"])
 
+    # 逐一模拟预算、轮数、异常和中断退出，确保报告保留停止事实而不伪造验收证据。
     def test_all_incomplete_exits_have_honest_reports(self):
         for responses, options, status, calls in [
             ([call("list_files")], {"token_budget": 1}, "token_budget", 0),
@@ -60,6 +76,7 @@ class ReportingTests(unittest.TestCase):
                 self.assertIn("未提供", report)
                 self.assertNotIn("有效证据：", report)
 
+    # 缺少 usage 时保留预算扣账，但实际用量仍标记为未知。
     def test_reserved_budget_is_not_reported_usage(self):
         response = call("list_files")
         response["usage"] = None
@@ -69,10 +86,12 @@ class ReportingTests(unittest.TestCase):
             self.assertIsNone(result["usage"]["total_tokens"])
             self.assertEqual(result["usage"]["reported_calls"]["total_tokens"], 0)
 
+    # 核对表格文本的换行清理、特殊字符转义和长度截断。
     def test_table_escapes_multiline_and_markup(self):
         self.assertEqual(cell("a|b\n<script>`"), "a&#124;b &lt;script&gt;&#96;")
         self.assertEqual(cell("abcdef", 3), "abc…")
 
+    # 用可控耗时连续运行两次，检查最新报告入口更新、旧报告保留且不进入源码指纹。
     def test_run_summary_timing_and_outer_report_survive_rerun(self):
         from unittest.mock import patch
         with tempfile.TemporaryDirectory() as tmp:
@@ -98,6 +117,7 @@ class ReportingTests(unittest.TestCase):
             self.assertIn("另一次任务", (workspace.root / "RUN_REPORT.md").read_text())
             self.assertEqual(workspace.snapshot(), {})
 
+    # 固定时间并替换 Agent，检查默认名、自定义名、显式目录和已有目录拒绝行为。
     def test_demo_default_task_names_and_explicit_destination(self):
         from unittest.mock import patch
         from scripts import demo
@@ -120,6 +140,7 @@ class ReportingTests(unittest.TestCase):
                         demo.main()
 
 
+    # 遍历两个入口和三种思考参数状态，确认 Provider 档位及 Agent 分账预算原样传递。
     def test_cli_and_demo_forward_thinking_modes(self):
         from unittest.mock import patch
         from mini_coding_agent import __main__ as cli

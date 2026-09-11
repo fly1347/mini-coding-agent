@@ -20,8 +20,8 @@ import urllib.error
 import urllib.request
 
 
+# 读取简单 KEY=value 配置，再用当前 LLM_* 环境变量覆盖。
 def load_config(env_file: Path | None = None) -> dict[str, str]:
-    """读取简单 KEY=value 配置，再用当前 LLM_* 环境变量覆盖。"""
     config = {}
     if env_file:
         for line in env_file.read_text(encoding="utf-8").splitlines():
@@ -35,13 +35,14 @@ def load_config(env_file: Path | None = None) -> dict[str, str]:
     return config
 
 
+# 兼容首轮 bytes/3+512 估算；实际循环使用近期 usage 校准。
 def estimate_tokens(value) -> int:
-    """兼容首轮 bytes/3+512 估算；实际循环使用近期 usage 校准。"""
     return math.ceil(len(json.dumps(value, ensure_ascii=False).encode("utf-8")) / 3) + 512
 
 
 class ChatProvider:
     """封装模型 HTTP 调用，避免凭据进入工具层。"""
+    # 校验模型、凭据、HTTPS 端点和额外字段，确定本次请求的思考档位。
     def __init__(self, config: dict[str, str], *, thinking="disabled"):
         if thinking not in {"enabled", "disabled"}:
             raise ValueError("thinking must be enabled or disabled")
@@ -61,19 +62,20 @@ class ChatProvider:
         self.extra.pop("thinking", None)
         self.extra["thinking"] = {"type": thinking}
 
+    # 统一构造请求体，供预估与实际发送复用。
     def request_body(self, messages, tools, max_tokens):
-        """统一构造请求体，供预估与实际发送复用。"""
         return {"model": self.model, "messages": messages, "tools": tools,
                 "tool_choice": "auto", "max_tokens": max_tokens, **self.extra}
 
+    # 请求一次模型回复，返回工具调用、用量和结束原因。
     def complete(self, messages: list[dict], tools: list[dict], max_tokens: int) -> dict:
-        """请求一次模型回复，返回工具调用、用量和结束原因。"""
         body = self.request_body(messages, tools, max_tokens)
         request = urllib.request.Request(self.url, data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
                                          headers={"Authorization": "Bearer " + self.key,
                                                   "Content-Type": "application/json"})
         # 禁止重定向，避免将 Authorization 转发到其他主机。
         class NoRedirect(urllib.request.HTTPRedirectHandler):
+            # 拒绝自动重定向，避免携带凭据的请求被转发到其他主机。
             def redirect_request(self, req, fp, code, msg, headers, newurl):
                 return None
         try:

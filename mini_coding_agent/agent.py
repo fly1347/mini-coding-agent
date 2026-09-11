@@ -63,8 +63,8 @@ SPECS = {
 }
 
 
+# 把简化工具定义转换为模型 API 接受的函数 schema。
 def schemas(specs: dict) -> list[dict]:
-    """把简化工具定义转换为模型 API 接受的函数 schema。"""
     return [{"type": "function", "function": {"name": name, "description": description,
              "parameters": {"type": "object", "properties": {k: {"type": v} for k, v in fields.items()},
                             "required": list(fields), "additionalProperties": False}}}
@@ -73,6 +73,7 @@ def schemas(specs: dict) -> list[dict]:
 
 class Agent:
     """管理一次有预算的开发任务及其验证证据。"""
+    # 校验预算与验证命令，初始化运行状态并按开关注册扩展工具。
     def __init__(self, workspace: Workspace, provider, *, max_steps=30, token_budget=None,
                  max_input_tokens=250000, max_output_tokens=50000, max_output_per_call=8192,
                  verify_command=DEFAULT_VERIFY, command_timeout=20, skill=False, mcp=False, task_title=None):
@@ -100,14 +101,14 @@ class Agent:
         self.steps = self.tokens = self.tool_count = 0
         self.executions = []
 
+    # 追加一条带时间戳的结构化运行事件。
     def event(self, kind: str, **data):
-        """追加一条带时间戳的结构化运行事件。"""
         record = {"time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "event": kind, **data}
         with (self.run_dir / "trace.jsonl").open("a", encoding="utf-8") as f:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
+    # 校验参数和运行阶段，再执行对应工具并返回真实结果。
     def dispatch(self, name: str, args: dict, tool_id: str) -> dict:
-        """校验参数和运行阶段，再执行对应工具并返回真实结果。"""
         if name not in self.specs:
             raise ValueError(f"unknown tool: {name}")
         fields = self.specs[name][1]
@@ -191,8 +192,8 @@ class Agent:
             return {"delivered": True, "summary": args["summary"]}
         raise ValueError("unimplemented tool")
 
+    # 锁定 workspace 并创建本次产物目录，避免并发运行互相覆盖。
     def run(self, task: str) -> dict:
-        """锁定 workspace 并创建本次产物目录，避免并发运行互相覆盖。"""
         if hasattr(self, "run_dir"):
             raise ValueError("create a new Agent instance for each run")
         if not task.strip():
@@ -216,8 +217,8 @@ class Agent:
             self.run_dir.mkdir(parents=True)
             return self._run(task)
 
+    # 执行模型与工具循环，并为各种退出状态保存交付报告。
     def _run(self, task: str) -> dict:
-        """执行模型与工具循环，并为各种退出状态保存交付报告。"""
         started_at = datetime.now().astimezone().isoformat(timespec="seconds")
         started_clock = time.monotonic()
         thinking = getattr(self.provider, "extra", {}).get("thinking")
