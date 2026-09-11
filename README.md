@@ -1,5 +1,7 @@
 # Mini Coding Agent
 
+**中文** | [English](README.en.md)
+
 一个用 **Python 标准库**实现的最小 Coding Agent：根据自然语言任务查看仓库、规划、修改代码、运行测试，并根据真实反馈继续修复，直到验证交付或触发预算停止。
 
 ```text
