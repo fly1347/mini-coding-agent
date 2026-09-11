@@ -1,8 +1,32 @@
 # 使用指南
 
-**中文** | [English](en/usage.md)
+[English](en/usage.md)
 
-所有命令从仓库根目录执行，无需安装 Python 包。首次使用建议运行预制 Demo，再切换到自己的小型项目。
+源码运行、Demo 和测试命令从仓库根目录执行，无需先安装本项目。首次使用建议运行预制 Demo，再切换到自己的小型项目。
+
+## 安装与依赖
+
+仓库提供 `pyproject.toml`，声明 Python 3.10+、MIT 许可证、构建方式和 `mini-coding-agent` 命令入口。Python 运行依赖为空（`dependencies = []`），因此不另放空的 `requirements.txt`。Bubblewrap 是需要单独安装的系统依赖，模型配置使用仓库中的 [.env.example](../.env.example)。
+
+如需在仓库目录外使用命令，可从仓库根目录安装到虚拟环境：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install .
+mini-coding-agent --help
+```
+
+安装后，`mini-coding-agent` 与 `python -m mini_coding_agent` 都可用；配置文件请使用明确路径，例如 `--env-file /absolute/path/to/model.env`。Skill 和 MCP 服务随 Python 包分发，Demo、样例与测试从源码仓库运行。构建依赖 setuptools 不属于运行依赖。
+
+开发时可使用 `python -m pip install -e .`。如需自行构建源码包和 wheel：
+
+```bash
+python -m pip install build
+python -m build
+```
+
+产物写入 `dist/`。这些命令从源码安装或构建，不要求项目已发布到 PyPI。
 
 ## 环境与模型配置
 

@@ -19,3 +19,9 @@ venv/
 
 # 本地整理底稿，不属于发布内容
 .local/
+AGENTS.md
+
+# Python 构建产物
+build/
+dist/
+*.egg-info/

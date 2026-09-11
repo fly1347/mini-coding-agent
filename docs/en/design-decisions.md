@@ -1,6 +1,6 @@
 # Design decisions
 
-[中文](../design-decisions.md) | **English**
+[中文](../design-decisions.md)
 
 This project first implements a working software development loop that can build, execute, repair, and verify, then uses real tasks to identify its limitations. Its current scope is small local Python projects; future capabilities are driven by experimental questions.
 

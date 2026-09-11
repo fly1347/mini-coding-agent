@@ -1,6 +1,6 @@
 # Architecture
 
-[中文](../architecture.md) | **English**
+[中文](../architecture.md)
 
 Mini Coding Agent is a synchronous, single-agent local development loop. The model chooses the next action; the harness checks whether it is allowed, executes tools, feeds back real results, and determines when delivery is permitted.
 

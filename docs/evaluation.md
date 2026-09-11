@@ -1,6 +1,6 @@
 # 实验结果
 
-**中文** | [English](en/evaluation.md)
+[English](en/evaluation.md)
 
 2026-09-10，使用 `deepseek-v4-flash` 在本地工作区进行六次真实运行，观察从零开发、已有项目增量修改、预算停止与 Skill/MCP 接入。上下文策略为 Full History。
 

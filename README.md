@@ -1,6 +1,6 @@
 # Mini Coding Agent
 
-**中文** | [English](README.en.md)
+[English](README.en.md)
 
 一个用 **Python 标准库**实现的最小 Coding Agent：根据自然语言任务查看仓库、规划、修改代码、运行测试，并根据真实反馈继续修复，直到验证交付或触发预算停止。
 
@@ -32,6 +32,8 @@
 
 需要 Linux / WSL2、Python 3.10+、Bubblewrap，并允许创建 user/network namespaces。Python 部分无第三方依赖。
 
+可直接从源码运行；也可通过 `python -m pip install .` 安装 `mini-coding-agent` 命令，详见 [安装与依赖](docs/usage.md#安装与依赖)。项目元数据与构建配置见 [pyproject.toml](pyproject.toml)。
+
 在仓库根目录准备模型配置：
 
 ```bash
@@ -62,7 +64,7 @@ python3 -m unittest discover -s tests -v
 mini_coding_agent/   Agent Loop、模型接口、工具、隔离、预算与报告
 scripts/            演示与样例交付验收
 examples/           测试修复用的最小 slugify 项目
-skills/             可选 test-repair Skill
+mini_coding_agent/skills/  随包分发的可选 test-repair Skill
 tests/              离线回归测试
 docs/               用法、架构、实验结果与设计取舍
 ```

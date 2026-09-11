@@ -1,6 +1,6 @@
 # Mini Coding Agent
 
-[中文](README.md) | **English**
+[中文](README.md)
 
 A minimal coding agent built with the **Python standard library**. Given a natural-language task, it inspects a repository, plans changes, edits code, runs tests, and uses real feedback to keep fixing problems until it delivers verified work or stops at its budget limit.
 
@@ -32,6 +32,8 @@ On 2026-09-10, experiments with `deepseek-v4-flash` covered development from scr
 
 Requires Linux / WSL2, Python 3.10+, Bubblewrap, and permission to create user/network namespaces. The Python code has no third-party dependencies.
 
+Run directly from source, or install the `mini-coding-agent` command with `python -m pip install .`; see [Installation and dependencies](docs/en/usage.md#installation-and-dependencies). Project metadata and build configuration are in [pyproject.toml](pyproject.toml).
+
 Prepare the model configuration at the repository root:
 
 ```bash
@@ -62,7 +64,7 @@ python3 -m unittest discover -s tests -v
 mini_coding_agent/   Agent loop, model interface, tools, isolation, budgets, reports
 scripts/            Demos and example delivery checks
 examples/           Minimal slugify project for test repair
-skills/             Optional test-repair skill
+mini_coding_agent/skills/  Bundled optional test-repair skill
 tests/              Offline regression tests
 docs/               Chinese usage, architecture, evaluation, and design decisions
 docs/en/            English documentation

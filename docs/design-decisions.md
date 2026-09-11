@@ -1,6 +1,6 @@
 # 设计取舍
 
-**中文** | [English](en/design-decisions.md)
+[English](en/design-decisions.md)
 
 这个项目先实现一条能够实际开发、执行、修复和验证的软件工作循环，再通过真实任务识别限制。当前范围是小型本地 Python 项目，后续能力由实验问题驱动。
 

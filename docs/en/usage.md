@@ -1,8 +1,32 @@
 # Usage
 
-[中文](../usage.md) | **English**
+[中文](../usage.md)
 
-Run all commands from the repository root. No Python package installation is needed. Start with a prepared demo before moving to your own small project.
+Run source commands, demos, and tests from the repository root; installing this project first is optional. Start with a prepared demo before moving to your own small project.
+
+## Installation and dependencies
+
+The repository provides `pyproject.toml` declaring Python 3.10+, the MIT license, the build backend, and the `mini-coding-agent` command. There are no Python runtime dependencies (`dependencies = []`), so no empty `requirements.txt` is included. Bubblewrap is a separately installed system dependency; model configuration uses the repository's [.env.example](../../.env.example).
+
+To use the command outside the repository directory, install into a virtual environment from the repository root:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install .
+mini-coding-agent --help
+```
+
+After installation, both `mini-coding-agent` and `python -m mini_coding_agent` work. Use an explicit configuration path, such as `--env-file /absolute/path/to/model.env`. The skill and MCP server are bundled in the Python package; run demos, examples, and tests from the source repository. The setuptools build dependency is not a runtime dependency.
+
+For development, use `python -m pip install -e .`. To build a source distribution and wheel:
+
+```bash
+python -m pip install build
+python -m build
+```
+
+Artifacts are written to `dist/`. These commands install or build from source and do not require the project to be published on PyPI.
 
 ## Environment and model configuration
 

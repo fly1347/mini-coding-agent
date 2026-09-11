@@ -1,6 +1,6 @@
 # Evaluation
 
-[中文](../evaluation.md) | **English**
+[中文](../evaluation.md)
 
 On 2026-09-10, six real runs with `deepseek-v4-flash` in local workspaces explored development from scratch, incremental changes to an existing project, budget stops, and Skill/MCP integration. The context strategy was Full History.
 

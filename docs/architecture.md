@@ -1,6 +1,6 @@
 # 架构
 
-**中文** | [English](en/architecture.md)
+[English](en/architecture.md)
 
 Mini Coding Agent 是一个同步、单 Agent 的本地开发循环。模型决定下一步动作，Harness 检查动作是否合法、执行工具、回填真实结果，并判断何时可以交付。
 

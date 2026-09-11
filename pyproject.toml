@@ -1,0 +1,36 @@
+# 项目发布配置：声明构建方式、元数据、命令入口和随包分发的 Skill。
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-coding-agent"
+version = "0.1.0"
+description = "A minimal, auditable coding agent built with the Python standard library and Bubblewrap"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "fly1347"}]
+dependencies = []
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development",
+]
+
+[project.urls]
+Repository = "https://github.com/fly1347/mini-coding-agent"
+Documentation = "https://github.com/fly1347/mini-coding-agent/blob/main/docs/usage.md"
+Issues = "https://github.com/fly1347/mini-coding-agent/issues"
+
+[project.scripts]
+mini-coding-agent = "mini_coding_agent.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["mini_coding_agent*"]
+
+[tool.setuptools.package-data]
+mini_coding_agent = ["skills/test-repair/SKILL.md"]

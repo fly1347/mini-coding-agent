@@ -176,7 +176,7 @@ class Agent:
         if name == "load_skill":
             if args["name"] != "test-repair":
                 raise ValueError("only the test-repair skill is available")
-            path = Path(__file__).resolve().parent.parent / "skills/test-repair/SKILL.md"
+            path = Path(__file__).resolve().parent / "skills/test-repair/SKILL.md"
             return {"name": args["name"], "content": path.read_text(encoding="utf-8")}
         if name == "mcp_project_notes":
             from .mcp_notes import read_notes
