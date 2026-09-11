@@ -17,7 +17,7 @@ from .workspace import Workspace
 
 def main():
     """解析命令行并启动一次任务，将交付状态转换为退出码。"""
-    parser = argparse.ArgumentParser(description="A one-day Mini Coding Agent (Python + Bubblewrap)")
+    parser = argparse.ArgumentParser(description="A minimal, auditable Coding Agent (Python + Bubblewrap)")
     parser.add_argument("workspace", type=Path)
     parser.add_argument("task", help="natural language development task")
     parser.add_argument("--task-title", help="报告摘要中的简短任务标题")
